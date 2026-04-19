@@ -1,0 +1,84 @@
+{
+  "name": "autodev-desktop",
+  "version": "1.0.0",
+  "description": "AutoDev — Autonomous Coding System Desktop Application",
+  "main": "desktop/main.js",
+  "author": "AutoDev",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron . --dev",
+    "dev": "electron . --dev",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build": "electron-builder --mac --win",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.autodev.desktop",
+    "productName": "AutoDev",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "desktop/icons/icon.png",
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "entitlements": "desktop/entitlements.mac.plist",
+      "entitlementsInherit": "desktop/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "AutoDev",
+      "backgroundColor": "#07070d",
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "desktop/icons/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AutoDev"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "desktop/icons/icon.png",
+      "category": "Development"
+    },
+    "files": [
+      "desktop/**/*",
+      "frontend/**/*",
+      "**/*.py",
+      "requirements.txt",
+      ".env",
+      "!**/__pycache__/**",
+      "!**/node_modules/**",
+      "!coding/**",
+      "!qdrant_storage/**",
+      "!.autodev_venv/**",
+      "!npm-cache/**",
+      "!dist/**",
+      "!.vercel/**",
+      "!test_*.py",
+      "!scratch*"
+    ],
+    "extraResources": [
+      {
+        "from": "requirements.txt",
+        "to": "requirements.txt"
+      }
+    ],
+    "asar": false
+  }
+}

@@ -1,0 +1,9 @@
+*
+!.vercelignore
+!vercel.json
+!landing
+!landing/**
+!dist
+!dist/*.dmg
+!dist/*.exe
+!dist/*.zip

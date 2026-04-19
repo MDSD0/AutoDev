@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoDev — Autonomous Coding System v4</title>
+    <meta name="description"
+        content="AutoDev v4: Production-grade autonomous coding platform with intelligent execution, continuous chat, and multi-language support.">
+
+    <!-- FIXED: Use @latest (the version that was working before the 0.263.1 pin) -->
+    <!-- This is the surgically minimal change — everything else is untouched -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Fallback: if Lucide failed to load, create a minimal stub
+        if (typeof lucide === 'undefined') {
+            window.lucide = { createIcons: function () { } };
+            console.warn('[AutoDev] Lucide icons CDN failed to load. Icons will not render.');
+        }
+    </script>
+
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("autodev-theme");
+                const theme = savedTheme === "light" || savedTheme === "dark"
+                    ? savedTheme
+                    : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+                document.documentElement.dataset.theme = theme;
+            } catch (e) {
+                document.documentElement.dataset.theme = "dark";
+            }
+            // Desktop mode detection
+            if (window.electronAPI && window.electronAPI.isDesktop) {
+                document.documentElement.classList.add('desktop-mode');
+                document.documentElement.dataset.desktop = 'true';
+                document.documentElement.dataset.platform = window.electronAPI.platform || '';
+            }
+        })();
+    </script>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/autodev-mark.svg">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Desktop-mode: extra padding for macOS titlebar traffic lights */
+        .desktop-mode[data-platform="darwin"] .topbar { padding-left: 80px; }
+        .desktop-mode .topbar { -webkit-app-region: drag; }
+        .desktop-mode .topbar button,
+        .desktop-mode .topbar a,
+        .desktop-mode .topbar select,
+        .desktop-mode .topbar input { -webkit-app-region: no-drag; }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="setup-prompt" id="setupPrompt" hidden>
+            <div class="setup-prompt-card">
+                <div class="setup-prompt-header">
+                    <span class="setup-prompt-kicker">First-time setup</span>
+                    <button class="icon-btn ghost" id="setupDismissBtn" title="Dismiss">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <h2>Connect your own model access</h2>
+                <p>Your API key stays in this browser, and each visitor gets separate sessions and history.</p>
+                <div class="setup-prompt-form">
+                    <label>
+                        <span>Provider</span>
+                        <select id="setupProvider" class="pill-select">
+                            <option value="groq">Groq</option>
+                            <option value="gemini">Gemini</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>API key</span>
+                        <input id="setupApiKey" type="password" placeholder="Paste your API key">
+                    </label>
+                </div>
+                <div class="setup-prompt-actions">
+                    <button class="btn primary" id="setupSaveBtn">
+                        <i data-lucide="key-round"></i> Use API Key
+                    </button>
+                    <button class="btn ghost" id="setupBridgeBtn">
+                        <i data-lucide="plug-zap"></i> Connect Local Bridge
+                    </button>
+                    <button class="btn ghost" id="setupOpenSettingsBtn">
+                        <i data-lucide="sliders-horizontal"></i> Full Setup
+                    </button>
+                </div>
+                <p class="setup-prompt-status" id="setupPromptStatus">Local bridge target: http://127.0.0.1:8765</p>
+            </div>
+        </div>
+
+        <!-- ========================= SIDEBAR ========================= -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <span class="sidebar-title">Sessions</span>
+                <div class="sidebar-actions">
+                    <button class="icon-btn" id="wipeRagBtn" title="Clear all AI memory">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-list" id="sessionList"></div>
+        </aside>
+
+        <!-- ========================= MAIN ============================ -->
+        <div class="main">
+
+            <!-- Header -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="icon-btn" id="sidebarToggle" title="Toggle sidebar">
+                        <i data-lucide="panel-left"></i>
+                    </button>
+                    <div class="brand">
+                        <img class="brand-icon" src="/static/autodev-mark.svg" alt="AutoDev logo">
+                        <span>AutoDev</span>
+                        <span class="brand-version">v4</span>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <a class="btn ghost topbar-link" href="/settings" title="Open advanced settings">
+                        <i data-lucide="sliders-horizontal"></i> Settings
+                    </a>
+                    <button class="icon-btn theme-toggle" id="themeToggle" title="Switch to light theme"
+                        aria-label="Toggle color theme" aria-pressed="false">
+                        <i data-lucide="sun-medium" id="themeToggleIcon"></i>
+                    </button>
+                    <button class="btn ghost" id="expandPanelBtn" style="display:none" title="Expand Panel">
+                        <i data-lucide="panel-right-open"></i>
+                    </button>
+                    <button class="btn ghost" id="launchBtn" style="display:none">
+                        <i data-lucide="play"></i> Launch
+                    </button>
+                    <button class="btn ghost" id="newProjectBtn">
+                        <i data-lucide="plus"></i> New
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content: chat + right panel -->
+            <div class="content">
+
+                <!-- =================== CHAT AREA ==================== -->
+                <div class="chat-wrap">
+                    <div class="chat-feed" id="chatFeed">
+                        <!-- Welcome screen -->
+                        <div class="welcome" id="welcomeScreen">
+                            <div class="welcome-icon">
+                                <img src="/static/autodev-mark.svg" alt="AutoDev logo">
+                            </div>
+                            <h1>What should we build?</h1>
+                            <p>AutoDev understands your goal, writes a spec, plans every file,<br>installs dependencies,
+                                generates code, and debugs itself.</p>
+                            <div class="chips">
+                                <button class="chip"
+                                    data-task="Build a beautiful dark-themed scientific calculator in HTML/CSS/JS with keyboard support and history log.">
+                                    <i data-lucide="calculator"></i>
+                                    <div>
+                                        <div class="chip-title">Calculator App</div>
+                                        <div class="chip-sub">HTML/CSS/JS</div>
+                                    </div>
+                                </button>
+                                <button class="chip"
+                                    data-task="Write a Python CLI tool that fetches the current Bitcoin price from CoinGecko API and displays a 7-day price trend chart in the terminal using matplotlib.">
+                                    <i data-lucide="trending-up"></i>
+                                    <div>
+                                        <div class="chip-title">BTC Price Chart</div>
+                                        <div class="chip-sub">Python + matplotlib</div>
+                                    </div>
+                                </button>
+                                <button class="chip"
+                                    data-task="Create a responsive HTML portfolio page with glassmorphism cards, smooth animations, dark theme, a hero section, skills grid, and a contact form.">
+                                    <i data-lucide="layout"></i>
+                                    <div>
+                                        <div class="chip-title">Portfolio Site</div>
+                                        <div class="chip-sub">HTML/CSS</div>
+                                    </div>
+                                </button>
+                                <button class="chip"
+                                    data-task="Build a Python script that generates a strong password of configurable length, checks its strength, and saves a history of generated passwords to a JSON file.">
+                                    <i data-lucide="key"></i>
+                                    <div>
+                                        <div class="chip-title">Password Generator</div>
+                                        <div class="chip-sub">Python CLI</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User guidance banner (shown after 6 failures) -->
+                    <div class="guidance-banner" id="guidanceBanner" style="display:none">
+                        <div class="guidance-banner-inner">
+                            <div class="guidance-header">
+                                <i data-lucide="alert-circle"></i>
+                                <span>All automatic retries exhausted — your guidance needed</span>
+                            </div>
+                            <div class="guidance-body">
+                                <textarea id="guidanceInput"
+                                    placeholder="Describe what you think is wrong, or what the code should do differently…"
+                                    rows="2"></textarea>
+                                <button class="btn primary" id="continueBtn">
+                                    <i data-lucide="play"></i> Continue with Guidance
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="input-area">
+                        <div class="input-box" id="inputBox">
+                            <textarea id="taskInput" placeholder="Describe what you want to build…" rows="1"></textarea>
+                            <div class="input-controls">
+                                <div class="controls-left">
+                                    <div class="mode-selector" id="modeSelector">
+                                        <button class="mode-btn active" data-mode="auto"
+                                            title="Auto: Intelligently decides between chat, planning, and fast mode">
+                                            <i data-lucide="sparkles"></i>
+                                            <span>Auto</span>
+                                        </button>
+                                        <button class="mode-btn" data-mode="plan"
+                                            title="Plan: Full pipeline — spec, plan, deps, code, execute, review">
+                                            <i data-lucide="layout-list"></i>
+                                            <span>Plan</span>
+                                        </button>
+                                        <button class="mode-btn" data-mode="fast"
+                                            title="Fast: Quick patch — code and execute only">
+                                            <i data-lucide="zap"></i>
+                                            <span>Fast</span>
+                                        </button>
+                                        <div class="mode-indicator" id="modeIndicator"></div>
+                                    </div>
+                                    <div class="mode-divider"></div>
+                                    <div style="display:flex; align-items:center; position:relative;">
+                                        <i data-lucide="cpu" id="modelIcon"
+                                            style="position:absolute; left: 8px; pointer-events:none; width:16px;"></i>
+                                        <select id="modelSelect" class="pill-select" style="padding-left: 28px;">
+                                            <option value="auto">Auto</option>
+                                            <option value="groq">Groq</option>
+                                            <option value="gemini">Gemini</option>
+                                            <option value="ollama">Ollama</option>
+                                            <option value="custom">Custom Local</option>
+                                        </select>
+                                    </div>
+                                    <label class="pill-toggle" title="Auto-refine prompt">
+                                        <input type="checkbox" id="refineToggle" checked>
+                                        <span class="toggle-track"></span>
+                                        <span class="toggle-label">Refine</span>
+                                    </label>
+                                    <div class="pill-range">
+                                        <i data-lucide="repeat" style="width:12px;height:12px"></i>
+                                        <input type="range" id="retriesInput" min="1" max="6" value="6">
+                                        <span id="retriesLabel">6</span>
+                                    </div>
+                                </div>
+                                <div class="controls-right">
+                                    <button class="icon-btn" id="stopBtn" title="Stop Generation"
+                                        style="display:none; color: var(--red);">
+                                        <i data-lucide="square"></i>
+                                    </button>
+                                    <button class="icon-btn" id="refineBtn" title="Refine prompt">
+                                        <i data-lucide="wand-2"></i>
+                                    </button>
+                                    <button class="send-btn" id="runBtn">
+                                        <i data-lucide="send"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="disclaimer">AutoDev v4 · Production Platform · LangGraph · AI can make mistakes</p>
+                    </div>
+                </div>
+
+                <!-- =================== RIGHT PANEL ================== -->
+                <div class="right-panel" id="rightPanel" style="display:none">
+                    <div class="panel-tabs" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <button class="ptab active" data-tab="output">Output</button>
+                            <button class="ptab" data-tab="code">Code</button>
+                            <button class="ptab" data-tab="files">Files</button>
+                            <button class="ptab" data-tab="spec">Spec</button>
+                        </div>
+                        <button class="icon-btn" id="collapsePanelBtn" title="Collapse Panel"
+                            style="margin-right: 12px; color: var(--muted); padding: 4px;">
+                            <i data-lucide="panel-right-close"></i>
+                        </button>
+                    </div>
+
+                    <!-- Output tab -->
+                    <div class="panel-content active" id="tab-output">
+                        <div class="terminal" id="execOutput">
+                            <span class="term-placeholder">Execution output will appear here…</span>
+                        </div>
+                        <div class="panel-actions">
+                            <button class="btn primary" id="rerunBtn" style="display:none">
+                                <i data-lucide="refresh-cw"></i> Re-run
+                            </button>
+                            <button class="btn ghost" id="launchFileBtn" style="display:none">
+                                <i data-lucide="external-link"></i> Open File
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Code tab -->
+                    <div class="panel-content" id="tab-code">
+                        <div class="code-toolbar">
+                            <span id="codeLang">—</span>
+                            <button class="icon-btn" id="copyCodeBtn" title="Copy">
+                                <i data-lucide="copy"></i>
+                            </button>
+                        </div>
+                        <div class="code-file-tabs" id="codeFileTabs"></div>
+                        <pre class="code-view" id="codeView"><code id="codeContent"></code></pre>
+                    </div>
+
+                    <!-- Files tab -->
+                    <div class="panel-content" id="tab-files">
+                        <div class="files-path" id="filesPath"></div>
+                        <div class="files-list" id="filesList"></div>
+                    </div>
+
+                    <!-- Spec tab -->
+                    <div class="panel-content" id="tab-spec">
+                        <div class="spec-panel" id="specPanel">
+                            <div class="spec-empty">No spec yet. Run a task to see the project specification.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- .content -->
+        </div><!-- .main -->
+    </div><!-- .app -->
+
+    <!-- ========================= FLOATING OUTPUT CONSOLE ========================= -->
+    <!-- Floating Action Button -->
+    <button class="output-fab" id="outputFab" title="Open Output Console" style="display:none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        <span class="fab-badge" id="fabBadge">0</span>
+        <span class="fab-pulse"></span>
+    </button>
+
+    <!-- Output Console Overlay -->
+    <div class="output-overlay" id="outputOverlay" style="display:none">
+        <div class="output-console" id="outputConsole">
+            <!-- Console Header -->
+            <div class="console-header">
+                <div class="console-header-left">
+                    <div class="console-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="console-title" id="consoleTitle">Output Console</span>
+                    <span class="console-badge" id="consoleBadge">0 files</span>
+                </div>
+                <div class="console-header-right">
+                    <button class="console-btn" id="consoleRefreshBtn" title="Refresh outputs">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                    <button class="console-btn" id="consoleExternalBtn" title="Open externally">
+                        <i data-lucide="external-link"></i>
+                    </button>
+                    <button class="console-btn" id="consoleFullscreenBtn" title="Toggle fullscreen">
+                        <i data-lucide="maximize-2"></i>
+                    </button>
+                    <button class="console-btn" id="consoleCloseBtn" title="Close">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Console Body -->
+            <div class="console-body">
+                <!-- File Navigator Sidebar -->
+                <div class="console-nav" id="consoleNav">
+                    <div class="console-nav-header">Files</div>
+                    <div class="console-nav-list" id="consoleNavList">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div class="console-nav-footer">
+                        <button class="console-nav-terminal-btn" id="consoleTerminalBtn" title="Show terminal output">
+                            <i data-lucide="terminal"></i>
+                            <span>Terminal</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview Area -->
+                <div class="console-preview" id="consolePreview">
+                    <div class="console-empty" id="consoleEmpty">
+                        <i data-lucide="monitor" style="width:48px;height:48px;color:var(--muted2)"></i>
+                        <div class="console-empty-title">No output yet</div>
+                        <div class="console-empty-sub">Run a task to see images, HTML, videos, and other output here
+                        </div>
+                    </div>
+                    <!-- Image viewer -->
+                    <div class="console-viewer" id="consoleImageViewer" style="display:none">
+                        <img id="consoleImage" src="" alt="Output" />
+                    </div>
+                    <!-- HTML iframe -->
+                    <div class="console-viewer" id="consoleHtmlViewer" style="display:none">
+                        <iframe id="consoleIframe" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                            src="about:blank"></iframe>
+                    </div>
+                    <!-- Video player -->
+                    <div class="console-viewer" id="consoleVideoViewer" style="display:none">
+                        <video id="consoleVideo" controls></video>
+                    </div>
+                    <!-- Audio player -->
+                    <div class="console-viewer" id="consoleAudioViewer" style="display:none">
+                        <div class="console-audio-wrap">
+                            <i data-lucide="music" style="width:64px;height:64px;color:var(--primary)"></i>
+                            <audio id="consoleAudio" controls></audio>
+                        </div>
+                    </div>
+                    <!-- Text / code viewer -->
+                    <div class="console-viewer" id="consoleTextViewer" style="display:none">
+                        <pre class="console-text" id="consoleText"></pre>
+                    </div>
+                    <!-- Terminal output viewer -->
+                    <div class="console-viewer" id="consoleTerminalViewer" style="display:none">
+                        <pre class="console-terminal-output" id="consoleTerminalOutput"></pre>
+                    </div>
+                    <!-- PDF viewer -->
+                    <div class="console-viewer" id="consolePdfViewer" style="display:none">
+                        <iframe id="consolePdf" src="about:blank" style="border:none;width:100%;height:100%"></iframe>
+                    </div>
+                    <!-- Multi-image gallery -->
+                    <div class="console-viewer console-gallery" id="consoleGalleryViewer" style="display:none">
+                        <div class="gallery-grid" id="galleryGrid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console Footer -->
+            <div class="console-footer" id="consoleFooter">
+                <span class="console-footer-info" id="consoleFooterInfo">Ready</span>
+                <div class="console-footer-actions">
+                    <button class="btn ghost console-footer-btn" id="consoleLaunchBtn">
+                        <i data-lucide="play"></i> Launch Real Execution
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pipeline template -->
+    <template id="pipelineTpl">
+        <div class="pipeline-wrap">
+            <div class="pipeline-bar">
+                <div class="pnode" data-node="prompt_refiner">
+                    <i data-lucide="wand-2"></i><span>Refiner</span>
+                </div>
+                <i data-lucide="chevron-right" class="pipe-arrow"></i>
+                <div class="pnode" data-node="spec_agent">
+                    <i data-lucide="file-search"></i><span>Spec</span>
+                </div>
+                <i data-lucide="chevron-right" class="pipe-arrow"></i>
+                <div class="pnode" data-node="planner_agent">
+                    <i data-lucide="layout-list"></i><span>Plan</span>
+                </div>
+                <i data-lucide="chevron-right" class="pipe-arrow"></i>
+                <div class="pnode" data-node="dependency_installer">
+                    <i data-lucide="package"></i><span>Deps</span>
+                </div>
+                <i data-lucide="chevron-right" class="pipe-arrow"></i>
+                <div class="pnode" data-node="implementer_agent">
+                    <i data-lucide="code-2"></i><span>Code</span>
+                </div>
+                <i data-lucide="chevron-right" class="pipe-arrow"></i>
+                <div class="pnode" data-node="executor">
+                    <i data-lucide="terminal"></i><span>Run</span>
+                </div>
+                <i data-lucide="chevron-right" class="pipe-arrow"></i>
+                <div class="pnode" data-node="error_classifier">
+                    <i data-lucide="search"></i><span>Classify</span>
+                </div>
+                <i data-lucide="chevron-right" class="pipe-arrow"></i>
+                <div class="pnode" data-node="reviewer_agent">
+                    <i data-lucide="shield-check"></i><span>Review</span>
+                </div>
+            </div>
+            <div class="thought-area"></div>
+        </div>
+    </template>
+
+    <script src="/static/settings-store.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

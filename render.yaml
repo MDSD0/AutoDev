@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: autodev
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn asgi:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: AUTODEV_ALLOW_SERVER_SECRETS
+        value: "false"

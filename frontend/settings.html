@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoDev Settings</title>
+    <meta name="description"
+        content="AutoDev advanced settings for providers, models, secrets, orchestration defaults, and endpoint management.">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        if (typeof lucide === 'undefined') {
+            window.lucide = { createIcons: function () { } };
+        }
+    </script>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("autodev-theme");
+                const theme = savedTheme === "light" || savedTheme === "dark"
+                    ? savedTheme
+                    : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+                document.documentElement.dataset.theme = theme;
+            } catch (e) {
+                document.documentElement.dataset.theme = "dark";
+            }
+        })();
+    </script>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/settings.css">
+</head>
+
+<body class="settings-page">
+    <div class="settings-shell">
+        <header class="topbar settings-topbar">
+            <div class="topbar-left">
+                <a class="btn ghost topbar-link" href="/">
+                    <i data-lucide="arrow-left"></i> Back
+                </a>
+                <div class="brand">
+                    <svg class="brand-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="var(--brand-glow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
+                    </svg>
+                    <span>AutoDev Settings</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button class="icon-btn theme-toggle" id="themeToggle" title="Switch theme" aria-label="Toggle color theme">
+                    <i data-lucide="sun-medium" id="themeToggleIcon"></i>
+                </button>
+                <a class="btn ghost topbar-link" href="/">
+                    <i data-lucide="terminal"></i> Workspace
+                </a>
+            </div>
+        </header>
+
+        <main class="settings-main">
+            <div class="settings-layout">
+                <aside class="settings-nav" aria-label="Settings sections">
+                    <div class="settings-nav-title">Settings</div>
+                    <button type="button" class="settings-nav-link active" data-settings-tab="overview">Overview</button>
+                    <button type="button" class="settings-nav-link" data-settings-tab="providers">Providers</button>
+                    <button type="button" class="settings-nav-link" data-settings-tab="local">Local Models</button>
+                    <button type="button" class="settings-nav-link" data-settings-tab="keys">API Keys</button>
+                    <button type="button" class="settings-nav-link" data-settings-tab="endpoints">Endpoints</button>
+                    <button type="button" class="settings-nav-link" data-settings-tab="logs">Logs</button>
+                </aside>
+
+                <div class="settings-content">
+                    <section class="settings-hero">
+                        <div>
+                            <span class="settings-kicker">Advanced Orchestration</span>
+                            <h1>Provider, model, and workflow settings live here now.</h1>
+                            <p>
+                                The main page keeps the existing runner controls. This page stores richer defaults, provider
+                                preferences, secrets, local-model launch settings, fallback-ready assignments, and endpoint metadata
+                                without touching the current task flow.
+                            </p>
+                        </div>
+                        <div class="settings-hero-actions">
+                            <button class="btn ghost" id="refreshSettingsBtn">
+                                <i data-lucide="refresh-cw"></i> Refresh Provider Data
+                            </button>
+                            <button class="btn primary" id="restoreSettingsBtn">
+                                <i data-lucide="rotate-ccw"></i> Restore Defaults
+                            </button>
+                        </div>
+                    </section>
+
+                    <div class="settings-grid">
+                <section class="settings-card active" id="workflowDefaults" data-settings-panel="overview">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>Workflow Defaults</h2>
+                            <p>These defaults prefill the existing main runner without removing any current controls.</p>
+                        </div>
+                    </div>
+                    <div class="settings-form-grid">
+                        <label class="settings-field">
+                            <span>Default provider</span>
+                            <select id="defaultProviderSelect"></select>
+                        </label>
+                        <label class="settings-field">
+                            <span>Workflow depth</span>
+                            <select id="workflowDepthSelect"></select>
+                        </label>
+                        <label class="settings-field">
+                            <span>Default retries</span>
+                            <input type="range" id="defaultRetriesInput" min="1" max="6" value="6">
+                            <small id="defaultRetriesLabel">6 retries</small>
+                        </label>
+                        <label class="settings-checkbox">
+                            <input type="checkbox" id="defaultRefineToggle">
+                            <span>Auto-refine prompts by default</span>
+                        </label>
+                        <label class="settings-checkbox">
+                            <input type="checkbox" id="expertModeToggle">
+                            <span>Enable expert orchestration flags</span>
+                        </label>
+                        <div class="settings-subgrid" id="expertFlags">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="skipSpecToggle">
+                                <span>Store “skip spec” as an expert preference</span>
+                            </label>
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="skipReviewToggle">
+                                <span>Store “skip review” as an expert preference</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="settings-card active" id="systemSummary" data-settings-panel="overview">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>System Summary</h2>
+                            <p>Live bootstrap information from the current backend and saved browser defaults.</p>
+                        </div>
+                    </div>
+                    <div class="settings-summary" id="settingsSummary"></div>
+                    <div class="settings-note">
+                        API keys, provider defaults, and local endpoint choices are saved to this machine's runtime
+                        settings and are used by the backend runner on the next task.
+                    </div>
+                </section>
+
+                <section class="settings-card settings-card-full" id="providerRegistry" data-settings-panel="providers">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>Provider Registry</h2>
+                            <p>Each provider exposes status, capabilities, selected defaults, and connection actions.</p>
+                        </div>
+                    </div>
+                    <div class="provider-grid" id="providerGrid"></div>
+                </section>
+
+                <section class="settings-card settings-card-full" id="localModelLab" data-settings-panel="local">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>Local Model Lab</h2>
+                            <p>Load and test local models with Ollama, a downloaded GGUF through <code>llama-server</code>, or an existing local OpenAI-compatible endpoint.</p>
+                        </div>
+                    </div>
+                    <div class="local-model-grid">
+                        <div class="local-model-card">
+                            <h3>Ollama Model Loader</h3>
+                            <div class="settings-form-grid">
+                                <label class="settings-field">
+                                    <span>Model tag or imported ref</span>
+                                    <input type="text" id="ollamaModelInput" placeholder="qwen2.5-coder:7b">
+                                </label>
+                                <label class="settings-field">
+                                    <span>Ollama base URL</span>
+                                    <input type="url" id="ollamaBaseUrlInput" placeholder="http://localhost:11434">
+                                </label>
+                            </div>
+                            <div class="settings-action-row">
+                                <button class="btn ghost" id="listOllamaBtn">
+                                    <i data-lucide="list"></i> List Local Models
+                                </button>
+                                <button class="btn ghost" id="pullOllamaBtn">
+                                    <i data-lucide="download"></i> Pull Model
+                                </button>
+                                <button class="btn primary" id="useOllamaBtn">
+                                    <i data-lucide="box"></i> Use for Project
+                                </button>
+                            </div>
+                            <div class="provider-message" id="ollamaStatus"></div>
+                            <div class="endpoint-list" id="ollamaList"></div>
+                        </div>
+
+                        <div class="local-model-card">
+                            <h3>Downloaded GGUF via llama.cpp</h3>
+                            <div class="settings-form-grid">
+                                <label class="settings-field">
+                                    <span>Local model file path</span>
+                                    <input type="text" id="ggufModelPathInput" placeholder="/Users/you/Models/model.gguf">
+                                </label>
+                                <label class="settings-field">
+                                    <span>Hugging Face repo or model file URL</span>
+                                    <input type="text" id="hfReferenceInput" placeholder="Qwen/Qwen2.5-Coder-7B-Instruct-GGUF or https://huggingface.co/...">
+                                </label>
+                                <label class="settings-field">
+                                    <span>GGUF include pattern</span>
+                                    <input type="text" id="hfDownloadPatternInput" placeholder="*.gguf">
+                                </label>
+                                <label class="settings-field">
+                                    <span>Download folder</span>
+                                    <input type="text" id="hfLocalDirInput" placeholder="AutoDev local_models folder">
+                                </label>
+                                <label class="settings-field">
+                                    <span><code>llama-server</code> command</span>
+                                    <input type="text" id="llamaCppCommandInput" placeholder="llama-server">
+                                </label>
+                                <label class="settings-field">
+                                    <span>Port</span>
+                                    <input type="number" id="llamaCppPortInput" min="1024" max="65535" value="8001">
+                                </label>
+                            </div>
+                            <div class="settings-action-row">
+                                <button class="btn ghost" id="downloadHfModelBtn">
+                                    <i data-lucide="download-cloud"></i> Download GGUF
+                                </button>
+                                <button class="btn ghost" id="stopLlamaCppBtn">
+                                    <i data-lucide="square"></i> Stop Runner
+                                </button>
+                                <button class="btn primary" id="launchLlamaCppBtn">
+                                    <i data-lucide="rocket"></i> Launch & Use
+                                </button>
+                            </div>
+                            <div class="provider-message" id="llamaCppStatus"></div>
+                        </div>
+
+                        <div class="local-model-card">
+                            <h3>Existing Local Endpoint</h3>
+                            <div class="settings-form-grid">
+                                <label class="settings-field">
+                                    <span>Endpoint URL</span>
+                                    <input type="url" id="localEndpointUrlInput" placeholder="http://127.0.0.1:8001/v1/chat/completions">
+                                </label>
+                                <label class="settings-field">
+                                    <span>Model identifier</span>
+                                    <input type="text" id="localEndpointModelInput" placeholder="local-model">
+                                </label>
+                                <label class="settings-field">
+                                    <span>API key</span>
+                                    <input type="password" id="localEndpointApiKeyInput" placeholder="Optional">
+                                </label>
+                                <label class="settings-field">
+                                    <span>Auth header</span>
+                                    <input type="text" id="localEndpointAuthHeaderInput" placeholder="Authorization">
+                                </label>
+                            </div>
+                            <div class="settings-action-row">
+                                <button class="btn ghost" id="testLocalEndpointBtn">
+                                    <i data-lucide="plug"></i> Test Endpoint
+                                </button>
+                                <button class="btn primary" id="useLocalEndpointBtn">
+                                    <i data-lucide="cpu"></i> Use for Project
+                                </button>
+                            </div>
+                            <div class="provider-message" id="localEndpointStatus"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="settings-card settings-card-full" id="roleAssignmentsSection" data-settings-panel="providers">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>Per-Role Model Assignments</h2>
+                            <p>Stored orchestration defaults for router, planner, coder, reviewer, and executor/fixer roles.</p>
+                        </div>
+                    </div>
+                    <div class="role-table" id="roleAssignments"></div>
+                </section>
+
+                <section class="settings-card settings-card-full" id="secretsSection" data-settings-panel="keys">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>Secrets</h2>
+                            <p>Stored locally on this machine and used by the backend runner. Nothing is shipped with shared keys.</p>
+                        </div>
+                    </div>
+                    <div class="secrets-grid" id="secretsGrid"></div>
+                </section>
+
+                <section class="settings-card settings-card-full" id="customEndpointSection" data-settings-panel="endpoints">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>Custom Endpoint Wizard</h2>
+                            <p>Add Hugging Face-style hosted endpoints, local bridges, or any compatible custom API.</p>
+                        </div>
+                    </div>
+                    <form class="endpoint-form" id="endpointForm">
+                        <div class="settings-form-grid">
+                            <label class="settings-field">
+                                <span>Display name</span>
+                                <input type="text" id="endpointName" placeholder="My Local Bridge">
+                            </label>
+                            <label class="settings-field">
+                                <span>Endpoint URL</span>
+                                <input type="url" id="endpointUrl" placeholder="https://example.com/v1/chat/completions">
+                            </label>
+                            <label class="settings-field">
+                                <span>Model identifier</span>
+                                <input type="text" id="endpointModelId" placeholder="model-id">
+                            </label>
+                            <label class="settings-field">
+                                <span>Auth header</span>
+                                <input type="text" id="endpointAuthHeader" value="Authorization">
+                            </label>
+                            <label class="settings-field">
+                                <span>API key</span>
+                                <input type="password" id="endpointApiKey" placeholder="Optional endpoint key">
+                            </label>
+                            <label class="settings-field">
+                                <span>Endpoint type</span>
+                                <select id="endpointType">
+                                    <option value="remote">Remote provider</option>
+                                    <option value="local">Local bridge</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="settings-inline-flags">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="endpointStreaming" checked>
+                                <span>Streaming</span>
+                            </label>
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="endpointToolUse">
+                                <span>Tool use</span>
+                            </label>
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="endpointJsonMode" checked>
+                                <span>JSON mode</span>
+                            </label>
+                        </div>
+                        <div class="settings-action-row">
+                            <button type="button" class="btn ghost" id="testEndpointBtn">
+                                <i data-lucide="plug"></i> Test Endpoint
+                            </button>
+                            <button type="submit" class="btn primary">
+                                <i data-lucide="plus"></i> Save Endpoint
+                            </button>
+                        </div>
+                    </form>
+                    <div class="endpoint-list" id="endpointList"></div>
+                </section>
+
+                <section class="settings-card settings-card-full" id="runtimeLogs" data-settings-panel="logs">
+                    <div class="settings-card-head">
+                        <div>
+                            <h2>Runtime Logs</h2>
+                            <p>Selections, tests, run payload choices, retries, and saved settings changes.</p>
+                        </div>
+                        <button class="btn ghost" id="clearLogsBtn">
+                            <i data-lucide="trash-2"></i> Clear Logs
+                        </button>
+                    </div>
+                    <div class="log-list" id="logList"></div>
+                </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/settings-store.js"></script>
+    <script src="/static/settings.js"></script>
+</body>
+
+</html>

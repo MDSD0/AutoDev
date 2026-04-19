@@ -1,0 +1,20 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="bg" x1="160" y1="128" x2="864" y2="896" gradientUnits="userSpaceOnUse">
+<stop stop-color="#7000FF"/>
+<stop offset="0.56" stop-color="#3B82F6"/>
+<stop offset="1" stop-color="#00F2FF"/>
+</linearGradient>
+<linearGradient id="stroke" x1="236" y1="224" x2="796" y2="800" gradientUnits="userSpaceOnUse">
+<stop stop-color="#F5F3FF"/>
+<stop offset="1" stop-color="#CFFAFE"/>
+</linearGradient>
+</defs>
+<rect x="96" y="96" width="832" height="832" rx="236" fill="#0B0E14"/>
+<rect x="110" y="110" width="804" height="804" rx="222" fill="url(#bg)" fill-opacity="0.18"/>
+<rect x="144" y="144" width="736" height="736" rx="198" fill="#121821"/>
+<path d="M294 738L478 288H616L730 520H584L530 412L420 738H294Z" fill="url(#stroke)"/>
+<path d="M488 596H742L560 772H430L488 596Z" fill="url(#bg)"/>
+<path d="M734 344C734 373.823 709.823 398 680 398C650.177 398 626 373.823 626 344C626 314.177 650.177 290 680 290C709.823 290 734 314.177 734 344Z" fill="#00F2FF"/>
+<path d="M340 320H454L410 454H296L340 320Z" fill="#A855F7"/>
+</svg>

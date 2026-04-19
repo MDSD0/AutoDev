@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoDev — Setup</title>
+  <meta name="description" content="AutoDev Desktop first-run setup wizard" />
+  <link rel="stylesheet" href="setup.css" />
+  <script>
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem("autodev-theme");
+        const theme = savedTheme === "light" || savedTheme === "dark"
+          ? savedTheme
+          : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+        document.documentElement.dataset.theme = theme;
+      } catch(e) { document.documentElement.dataset.theme = "dark"; }
+    })();
+  </script>
+</head>
+<body>
+  <div class="setup-bg"></div>
+
+  <!-- Loading Screen (shown when setup is already complete, waiting for backend) -->
+  <div class="loading-screen" id="loadingScreen" style="display:none">
+    <div class="logo-orb">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
+      </svg>
+    </div>
+    <div>
+      <div class="loading-text" id="loadingText">Starting AutoDev...</div>
+      <div class="loading-subtext" id="loadingSubtext">Preparing the engine</div>
+    </div>
+    <div class="loading-bar-container" style="width:200px">
+      <div class="loading-bar indeterminate"></div>
+    </div>
+  </div>
+
+  <!-- Setup Wizard -->
+  <div class="setup-container" id="setupWizard">
+    <!-- Step Progress -->
+    <div class="step-progress" id="stepProgress">
+      <div class="step-dot active" data-step="1">1</div>
+      <div class="step-connector"></div>
+      <div class="step-dot" data-step="2">2</div>
+      <div class="step-connector"></div>
+      <div class="step-dot" data-step="3">3</div>
+      <div class="step-connector"></div>
+      <div class="step-dot" data-step="4">4</div>
+      <div class="step-connector"></div>
+      <div class="step-dot" data-step="5">5</div>
+    </div>
+
+    <div class="wizard-card">
+      <div class="wizard-body">
+
+        <!-- ═══════ Step 1: Welcome ═══════ -->
+        <div class="step-panel active" data-step="1" id="stepWelcome">
+          <div class="welcome-logo">
+            <div class="logo-orb">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
+              </svg>
+            </div>
+          </div>
+          <h2 class="step-title">Welcome to AutoDev</h2>
+          <p class="step-subtitle">
+            Your autonomous coding assistant. Let's get you set up in under a minute.<br/>
+            AutoDev will write specs, plan files, generate code, install dependencies, run, and debug — all autonomously.
+          </p>
+          <div style="display:flex;justify-content:center;margin-bottom:20px">
+            <div class="platform-badge" id="platformBadge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <span id="platformText">Detecting platform...</span>
+            </div>
+          </div>
+          <div class="detect-status" id="pythonStatus">
+            <div class="detect-dot warn"></div>
+            <div class="detect-message" id="pythonMessage">Detecting Python installation...</div>
+          </div>
+        </div>
+
+        <!-- ═══════ Step 2: Model Source ═══════ -->
+        <div class="step-panel" data-step="2" id="stepModelSource">
+          <h2 class="step-title">Choose Your AI Engine</h2>
+          <p class="step-subtitle">Pick how you want to power AutoDev. You can change this anytime in Settings.</p>
+          <div class="source-cards">
+            <div class="source-card" data-source="cloud" id="srcCloud">
+              <div class="source-card-icon cloud">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+              </div>
+              <div class="source-card-content">
+                <div class="source-card-title">Cloud API Keys</div>
+                <div class="source-card-desc">Use Gemini or Groq with your own free API keys. Best quality & speed.</div>
+              </div>
+              <div class="source-card-check"></div>
+            </div>
+            <div class="source-card" data-source="ollama" id="srcOllama">
+              <div class="source-card-icon local">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3h-8l-2 4h12z"/></svg>
+              </div>
+              <div class="source-card-content">
+                <div class="source-card-title">Local LLM (Ollama)</div>
+                <div class="source-card-desc" id="ollamaSourceDesc">Run models locally. Free & private. Requires Ollama installed.</div>
+              </div>
+              <div class="source-card-check"></div>
+            </div>
+            <div class="source-card" data-source="huggingface" id="srcHuggingFace">
+              <div class="source-card-icon huggingface">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
+              <div class="source-card-content">
+                <div class="source-card-title">HuggingFace Import</div>
+                <div class="source-card-desc">Download GGUF models from HuggingFace and run locally.</div>
+              </div>
+              <div class="source-card-check"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ Step 3: Configuration ═══════ -->
+        <div class="step-panel" data-step="3" id="stepConfig">
+          <!-- Cloud config -->
+          <div id="configCloud" style="display:none">
+            <h2 class="step-title">Enter API Keys</h2>
+            <p class="step-subtitle">Your keys stay on this machine. Never sent anywhere except the provider APIs.</p>
+            <div class="info-tip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span>Get a free Gemini key at <a href="#" id="geminiKeyLink" style="color:var(--primary);text-decoration:none">ai.google.dev</a> or Groq key at <a href="#" id="groqKeyLink" style="color:var(--primary);text-decoration:none">console.groq.com</a></span>
+            </div>
+            <div class="setup-form-group">
+              <label>Primary Provider</label>
+              <select class="setup-select" id="cfgProvider">
+                <option value="gemini">Gemini (Recommended)</option>
+                <option value="groq">Groq (Fast)</option>
+              </select>
+            </div>
+            <div class="setup-form-group" id="geminiKeyGroup">
+              <label>Gemini API Key</label>
+              <input type="password" class="setup-input mono" id="cfgGeminiKey" placeholder="AIza..." autocomplete="off" />
+            </div>
+            <div class="setup-form-group" id="groqKeyGroup">
+              <label>Groq API Key</label>
+              <input type="password" class="setup-input mono" id="cfgGroqKey" placeholder="gsk_..." autocomplete="off" />
+            </div>
+            <div class="setup-status" id="cloudConfigStatus"></div>
+          </div>
+
+          <!-- Ollama config -->
+          <div id="configOllama" style="display:none">
+            <h2 class="step-title">Configure Ollama</h2>
+            <p class="step-subtitle">Connect to your local Ollama instance.</p>
+            <div class="detect-status" id="ollamaDetectStatus">
+              <div class="detect-dot warn" id="ollamaDetectDot"></div>
+              <div class="detect-message" id="ollamaDetectMessage">Checking Ollama...</div>
+            </div>
+            <div class="setup-form-group">
+              <label>Ollama Base URL</label>
+              <input type="text" class="setup-input mono" id="cfgOllamaUrl" value="http://localhost:11434" />
+            </div>
+            <div id="ollamaModelsSection" style="display:none">
+              <label style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;display:block">Available Models</label>
+              <div class="model-list" id="ollamaModelList"></div>
+              <div class="setup-form-group" style="margin-top:10px">
+                <label>Or pull a new model</label>
+                <div style="display:flex;gap:8px">
+                  <input type="text" class="setup-input mono" id="cfgOllamaPull" placeholder="qwen2.5-coder:3b" style="flex:1" />
+                  <button class="btn btn-secondary btn-sm" id="pullOllamaBtn">Pull</button>
+                </div>
+              </div>
+            </div>
+            <div class="setup-status" id="ollamaConfigStatus"></div>
+          </div>
+
+          <!-- HuggingFace config -->
+          <div id="configHuggingFace" style="display:none">
+            <h2 class="step-title">Import from HuggingFace</h2>
+            <p class="step-subtitle">Download a GGUF model from HuggingFace Hub.</p>
+            <div class="info-tip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span>Paste a HuggingFace repo URL like <code style="font-family:var(--font-mono);font-size:11px">TheBloke/Mistral-7B-v0.1-GGUF</code></span>
+            </div>
+            <div class="setup-form-group">
+              <label>HuggingFace Repo or URL</label>
+              <input type="text" class="setup-input mono" id="cfgHfRepo" placeholder="username/model-name-GGUF" />
+            </div>
+            <div class="setup-form-group">
+              <label>HuggingFace Token (optional, for private models)</label>
+              <input type="password" class="setup-input mono" id="cfgHfToken" placeholder="hf_..." autocomplete="off" />
+            </div>
+            <div class="hf-download-progress" id="hfProgress" style="display:none">
+              <div class="loading-bar-container">
+                <div class="loading-bar indeterminate" id="hfProgressBar"></div>
+              </div>
+              <div class="hf-status" id="hfStatusText">Starting download...</div>
+            </div>
+            <div class="setup-status" id="hfConfigStatus"></div>
+          </div>
+        </div>
+
+        <!-- ═══════ Step 4: Permissions ═══════ -->
+        <div class="step-panel" data-step="4" id="stepPermissions">
+          <h2 class="step-title">System Access</h2>
+          <p class="step-subtitle">AutoDev needs these permissions to run code and manage dependencies.</p>
+          <div class="perm-list">
+            <div class="perm-item">
+              <div class="perm-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              </div>
+              <div>
+                <div class="perm-title">Terminal Access</div>
+                <div class="perm-desc">Execute Python scripts, install packages, and run generated code.</div>
+              </div>
+              <span class="perm-status" id="permTerminal">checking...</span>
+            </div>
+            <div class="perm-item">
+              <div class="perm-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div>
+                <div class="perm-title">File System</div>
+                <div class="perm-desc">Read and write project files in the AutoDev workspace.</div>
+              </div>
+              <span class="perm-status" id="permFileSystem">checking...</span>
+            </div>
+            <div class="perm-item">
+              <div class="perm-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+              </div>
+              <div>
+                <div class="perm-title">Network</div>
+                <div class="perm-desc">Connect to AI providers (Gemini, Groq, Ollama) and download packages.</div>
+              </div>
+              <span class="perm-status" id="permNetwork">checking...</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary" id="grantPermsBtn" style="width:100%">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Grant Permissions
+          </button>
+          <div class="setup-status" id="permStatus"></div>
+        </div>
+
+        <!-- ═══════ Step 5: Test & Launch ═══════ -->
+        <div class="step-panel" data-step="5" id="stepTest">
+          <div id="testRunning">
+            <h2 class="step-title">Quick System Check</h2>
+            <p class="step-subtitle">Verifying your configuration...</p>
+            <div class="test-results" id="testResults">
+              <div class="test-item" id="testPython">
+                <div class="test-spinner"></div>
+                <span>Python environment</span>
+              </div>
+              <div class="test-item" id="testDeps">
+                <div class="test-spinner"></div>
+                <span>Dependencies</span>
+              </div>
+              <div class="test-item" id="testProvider">
+                <div class="test-spinner"></div>
+                <span>AI provider connectivity</span>
+              </div>
+              <div class="test-item" id="testBackend">
+                <div class="test-spinner"></div>
+                <span>AutoDev engine</span>
+              </div>
+            </div>
+          </div>
+          <div id="testSuccess" style="display:none">
+            <div class="success-container">
+              <div class="success-orb">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <h2 class="step-title" style="margin-bottom:8px">You're All Set!</h2>
+              <p class="step-subtitle">AutoDev is configured and ready. Let's build something amazing.</p>
+            </div>
+          </div>
+          <div class="setup-status" id="testStatus"></div>
+        </div>
+
+      </div><!-- .wizard-body -->
+
+      <div class="wizard-footer">
+        <button class="btn btn-ghost" id="backBtn" style="visibility:hidden">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back
+        </button>
+        <button class="btn btn-primary" id="nextBtn">
+          Get Started
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div><!-- .wizard-card -->
+  </div><!-- .setup-container -->
+
+  <script src="setup.js"></script>
+</body>
+</html>
