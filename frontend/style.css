@@ -2167,9 +2167,11 @@ i.spinning {
 }
 
 /* Reposition handle when the right dock is open so it sits at the right edge
-   of the center workspace, just above the composer. */
-.app:has(.right-panel:not(.minimized):not([style*="display:none"])) .output-fab,
-.app:has(.right-panel:not(.minimized):not([style*="display: none"])) .output-fab {
+   of the center workspace, just above the composer.
+   `.output-fab` is a sibling of `.app` in the DOM, so the general-sibling
+   combinator is required — a descendant combinator would never match. */
+.app:has(.right-panel:not(.minimized):not([style*="display:none"])) ~ .output-fab,
+.app:has(.right-panel:not(.minimized):not([style*="display: none"])) ~ .output-fab {
     right: calc(var(--right-dock-width) + 24px);
 }
 
