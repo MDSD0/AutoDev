@@ -60,6 +60,26 @@
     --primary-glow: 0 0 0 1px rgba(168, 85, 247, 0.16), 0 0 28px rgba(168, 85, 247, 0.18);
     --radius: 10px;
     --radius-lg: 14px;
+    /* Codex-style shell tokens */
+    --radius-pane: 4px;
+    --radius-control: 8px;
+    --radius-pill: 999px;
+    --dock-border: rgba(148, 163, 184, 0.10);
+    --dock-border-hi: rgba(148, 163, 184, 0.18);
+    --dock-inset: inset -1px 0 0 rgba(255, 255, 255, 0.02);
+    --dock-inset-right: inset 1px 0 0 rgba(255, 255, 255, 0.02);
+    --dock-bg: rgba(11, 14, 20, 0.78);
+    --dock-bg-strong: rgba(14, 18, 25, 0.92);
+    --workspace-bg: transparent;
+    --dur-micro: 140ms;
+    --dur-panel: 240ms;
+    --dur-layout: 300ms;
+    --dur-text: 120ms;
+    --ease-open: cubic-bezier(.2, .8, .2, 1);
+    --ease-close: cubic-bezier(.4, 0, .2, 1);
+    --rail-width: 60px;
+    --sidebar-width: 288px;
+    --right-dock-width: 380px;
     color-scheme: dark;
 }
 
@@ -119,6 +139,13 @@
     --button-grad-hover: linear-gradient(135deg, #7c18ff, #4a8dff);
     --button-shadow: 0 12px 28px rgba(139, 92, 246, 0.14);
     --primary-glow: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 0 24px rgba(139, 92, 246, 0.08);
+    /* Codex-style shell tokens (light) */
+    --dock-border: rgba(15, 23, 42, 0.08);
+    --dock-border-hi: rgba(15, 23, 42, 0.14);
+    --dock-inset: inset -1px 0 0 rgba(15, 23, 42, 0.04);
+    --dock-inset-right: inset 1px 0 0 rgba(15, 23, 42, 0.04);
+    --dock-bg: rgba(255, 255, 255, 0.82);
+    --dock-bg-strong: rgba(255, 255, 255, 0.94);
     color-scheme: light;
 }
 
@@ -149,8 +176,8 @@
 body {
     font-family: 'Inter', sans-serif;
     background:
-        radial-gradient(circle at top, var(--primary-lo), transparent 34%),
-        radial-gradient(circle at 85% 18%, var(--blue-lo), transparent 26%),
+        radial-gradient(circle at top, var(--primary-lo), transparent 44%),
+        radial-gradient(circle at 92% 14%, var(--blue-lo), transparent 30%),
         var(--bg);
     color: var(--text);
     height: 100vh;
@@ -160,44 +187,51 @@ body {
 }
 
 /* =====================================================
-   App Shell
+   App Shell (3-zone docked)
    ===================================================== */
 .app {
     display: flex;
     height: 100vh;
     overflow: hidden;
+    background: var(--bg);
 }
 
 /* =====================================================
-   Sidebar
+   Sidebar (Left Dock)
    ===================================================== */
 .sidebar {
-    width: 232px;
-    background: var(--glass-bg-strong);
-    border-right: 1px solid var(--glass-stroke);
+    width: var(--sidebar-width);
+    background: var(--dock-bg-strong);
+    border-right: 1px solid var(--dock-border);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: width 0.22s ease, opacity 0.22s;
+    transition: width var(--dur-panel) var(--ease-open),
+                opacity var(--dur-panel) var(--ease-open);
     overflow: hidden;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--dock-inset);
+    position: relative;
+    z-index: 2;
 }
 
 .sidebar.collapsed {
     width: 0;
     opacity: 0;
     pointer-events: none;
+    transition: width var(--dur-panel) var(--ease-close),
+                opacity var(--dur-text) var(--ease-close);
 }
 
 .sidebar-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.9rem 0.9rem 0.6rem;
-    border-bottom: 1px solid var(--border);
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--dock-border);
     flex-shrink: 0;
+    min-height: 52px;
 }
 
 .sidebar-title {
@@ -454,7 +488,7 @@ body {
 }
 
 /* =====================================================
-   Main
+   Main (Workspace)
    ===================================================== */
 .main {
     flex: 1;
@@ -462,43 +496,49 @@ body {
     flex-direction: column;
     overflow: hidden;
     min-width: 0;
+    background: var(--workspace-bg);
+    position: relative;
 }
 
 /* =====================================================
-   Topbar
+   Topbar (Docking Header)
    ===================================================== */
 .topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.1rem;
-    height: 52px;
-    border-bottom: 1px solid var(--glass-stroke);
+    padding: 0 14px;
+    height: 48px;
+    border-bottom: 1px solid var(--dock-border);
     flex-shrink: 0;
-    background: var(--glass-bg-strong);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--dock-bg-strong);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: relative;
+    z-index: 2;
 }
 
 .topbar-left {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 8px;
+    min-width: 0;
 }
 
 .topbar-right {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 4px;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: -0.3px;
+    gap: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    transition: transform var(--dur-panel) var(--ease-open);
 }
 
 .brand-icon {
@@ -508,20 +548,21 @@ body {
 }
 
 .brand-version {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 600;
     background: var(--primary-lo);
     color: var(--primary);
     border: 1px solid var(--border-hi);
     padding: 1px 6px;
-    border-radius: 10px;
+    border-radius: var(--radius-pill);
     letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 .theme-toggle {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-stroke);
-    color: var(--primary);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
 }
 
 .theme-toggle:hover {
@@ -535,22 +576,29 @@ body {
    ===================================================== */
 .icon-btn {
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--muted);
     cursor: pointer;
-    border-radius: 7px;
+    border-radius: var(--radius-control);
     width: 30px;
     height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.12s, color 0.12s;
+    transition: background var(--dur-micro) var(--ease-open),
+                color var(--dur-micro) var(--ease-open),
+                border-color var(--dur-micro) var(--ease-open),
+                transform var(--dur-micro) var(--ease-open);
     flex-shrink: 0;
 }
 
 .icon-btn:hover {
     background: var(--hover-soft);
     color: var(--text);
+}
+
+.icon-btn:active {
+    transform: scale(0.98);
 }
 
 .icon-btn i {
@@ -561,15 +609,19 @@ body {
 .btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.32rem 0.8rem;
-    border-radius: 7px;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: var(--radius-control);
     font-size: 0.8rem;
     font-family: inherit;
     font-weight: 500;
     cursor: pointer;
-    border: none;
-    transition: all 0.12s;
+    border: 1px solid transparent;
+    transition: background var(--dur-micro) var(--ease-open),
+                color var(--dur-micro) var(--ease-open),
+                border-color var(--dur-micro) var(--ease-open),
+                transform var(--dur-micro) var(--ease-open),
+                box-shadow var(--dur-micro) var(--ease-open);
     white-space: nowrap;
 }
 
@@ -583,16 +635,18 @@ body {
 }
 
 .btn.ghost {
-    background: var(--glass-bg);
+    background: transparent;
     color: var(--text);
-    border: 1px solid var(--glass-stroke);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--dock-border-hi);
 }
 
 .btn.ghost:hover {
-    border-color: var(--border-hi);
     background: var(--hover-soft);
+    border-color: var(--border-hi);
+}
+
+.btn.ghost:active {
+    transform: scale(0.98);
 }
 
 .btn.primary {
@@ -603,6 +657,10 @@ body {
 
 .btn.primary:hover {
     background: var(--button-grad-hover);
+}
+
+.btn.primary:active {
+    transform: scale(0.98);
 }
 
 .btn:disabled {
@@ -621,7 +679,7 @@ body {
 }
 
 /* =====================================================
-   Chat
+   Chat (Center Workspace)
    ===================================================== */
 .chat-wrap {
     flex: 1;
@@ -629,57 +687,60 @@ body {
     flex-direction: column;
     min-width: 0;
     overflow: hidden;
+    position: relative;
 }
 
 .chat-feed {
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem 1.75rem;
+    padding: 24px 28px;
     display: flex;
     flex-direction: column;
-    gap: 1.4rem;
+    gap: 20px;
     scroll-behavior: smooth;
     overscroll-behavior: contain;
     align-items: stretch;
 }
 
-/* Welcome */
+/* Welcome (Landing state) */
 .welcome {
     margin: auto;
-    max-width: 540px;
+    max-width: 720px;
+    width: 100%;
     text-align: center;
-    animation: fadeUp 0.4s ease;
-    padding: 2rem 0;
+    animation: fadeUp var(--dur-layout) var(--ease-open);
+    padding: 32px 16px;
 }
 
 .welcome-icon {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     background: linear-gradient(135deg, var(--primary-lo), var(--action-soft));
     border: 1px solid var(--border-hi);
-    border-radius: 14px;
+    border-radius: var(--radius-control);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1.2rem;
+    margin: 0 auto 16px;
     color: var(--primary);
 }
 
 .welcome-icon i {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
 }
 
 .welcome-icon img {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     display: block;
 }
 
 .welcome h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.6rem;
+    font-size: 1.55rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.4px;
     background: linear-gradient(135deg, var(--text), var(--brand-glow));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -687,54 +748,64 @@ body {
 
 .welcome p {
     color: var(--muted);
-    font-size: 0.87rem;
-    margin-bottom: 1.8rem;
-    line-height: 1.65;
+    font-size: 0.85rem;
+    margin-bottom: 22px;
+    line-height: 1.6;
 }
 
+/* Quick-start suggestion row (not destination tiles) */
 .chips {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.55rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 6px;
+    max-width: 640px;
+    margin: 0 auto;
 }
 
 .chip {
-    padding: 0.8rem 1rem;
-    border-radius: 10px;
-    background: var(--glass-bg);
-    border: 1px solid var(--border);
+    padding: 9px 12px;
+    border-radius: var(--radius-control);
+    background: transparent;
+    border: 1px solid var(--dock-border-hi);
     color: var(--text);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-family: inherit;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 8px;
     cursor: pointer;
     text-align: left;
-    transition: all 0.15s;
+    min-height: 44px;
+    transition: background var(--dur-micro) var(--ease-open),
+                border-color var(--dur-micro) var(--ease-open),
+                transform var(--dur-micro) var(--ease-open);
 }
 
 .chip i {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     color: var(--primary);
     flex-shrink: 0;
 }
 
 .chip:hover {
     border-color: var(--border-hi);
-    transform: translateY(-1px);
-    box-shadow: var(--panel-shadow-soft);
+    background: var(--hover-soft);
+}
+
+.chip:active {
+    transform: scale(0.98);
 }
 
 .chip-title {
     font-weight: 500;
-    font-size: 0.83rem;
+    font-size: 0.78rem;
+    line-height: 1.25;
 }
 
 .chip-sub {
     color: var(--muted);
-    font-size: 0.73rem;
+    font-size: 0.68rem;
     margin-top: 1px;
 }
 
@@ -797,13 +868,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-stroke);
-    border-radius: 12px;
+    background: var(--dock-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--dock-border-hi);
+    border-radius: var(--radius-control);
     padding: 0.55rem 0.75rem 0.6rem;
-    box-shadow: var(--panel-shadow);
+    box-shadow: var(--panel-shadow-soft);
     position: relative;
 }
 
@@ -886,15 +957,16 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 0.25rem;
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-stroke);
+    background: var(--dock-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--dock-border-hi);
     padding: 0.5rem 0.75rem;
-    border-radius: 12px;
+    border-radius: var(--radius-control);
     position: relative;
-    box-shadow: var(--panel-shadow);
-    transition: all 0.3s ease;
+    box-shadow: var(--panel-shadow-soft);
+    transition: background var(--dur-panel) var(--ease-open),
+                border-color var(--dur-panel) var(--ease-open);
 }
 
 .pnode {
@@ -965,14 +1037,14 @@ body {
 }
 
 .thought-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-stroke);
-    border-radius: 12px;
+    background: var(--dock-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--dock-border-hi);
+    border-radius: var(--radius-control);
     overflow: hidden;
-    animation: dropIn 0.25s ease;
-    box-shadow: var(--panel-shadow-soft);
+    animation: dropIn var(--dur-panel) var(--ease-open);
+    box-shadow: none;
 }
 
 .thought-card:focus-within {
@@ -1339,11 +1411,11 @@ body {
 .guidance-banner-inner {
     background: var(--action-soft);
     border: 1px solid var(--action-border);
-    border-radius: 12px;
+    border-radius: var(--radius-control);
     overflow: hidden;
-    animation: dropIn 0.3s ease;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    animation: dropIn var(--dur-panel) var(--ease-open);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .guidance-header {
@@ -1390,27 +1462,31 @@ body {
 }
 
 /* =====================================================
-   Input Area
+   Input Area (Bottom Composer)
    ===================================================== */
 .input-area {
-    padding: 0 1.5rem 1.1rem;
+    padding: 8px 24px 16px;
     flex-shrink: 0;
+    max-width: 960px;
+    width: 100%;
+    align-self: center;
 }
 
 .input-box {
-    background: var(--glass-bg-strong);
-    border: 1px solid var(--glass-stroke);
-    border-radius: 13px;
+    background: var(--dock-bg-strong);
+    border: 1px solid var(--dock-border-hi);
+    border-radius: var(--radius-control);
     overflow: hidden;
-    transition: border-color 0.18s;
-    box-shadow: var(--panel-shadow);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    transition: border-color var(--dur-micro) var(--ease-open),
+                box-shadow var(--dur-micro) var(--ease-open);
+    box-shadow: var(--panel-shadow-soft);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .input-box:focus-within {
     border-color: var(--border-hi);
-    box-shadow: var(--panel-shadow), var(--primary-glow);
+    box-shadow: var(--panel-shadow-soft), var(--primary-glow);
 }
 
 textarea {
@@ -1529,19 +1605,25 @@ textarea::placeholder {
     height: 32px;
     background: var(--button-grad);
     border: none;
-    border-radius: 9px;
+    border-radius: var(--radius-control);
     color: #fff;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.12s, transform 0.09s, box-shadow 0.12s;
+    transition: background var(--dur-micro) var(--ease-open),
+                transform var(--dur-micro) var(--ease-open),
+                box-shadow var(--dur-micro) var(--ease-open);
     box-shadow: var(--button-shadow);
 }
 
 .send-btn:hover {
     background: var(--button-grad-hover);
-    transform: scale(1.06);
+    transform: scale(1.02);
+}
+
+.send-btn:active {
+    transform: scale(0.98);
 }
 
 .send-btn i {
@@ -1562,20 +1644,23 @@ textarea::placeholder {
 }
 
 /* =====================================================
-   Right Panel
+   Right Panel (Docked Drawer)
    ===================================================== */
 .right-panel {
-    width: 390px;
+    width: var(--right-dock-width);
     flex-shrink: 0;
-    background: var(--glass-bg-strong);
-    border-left: 1px solid var(--glass-stroke);
+    background: var(--dock-bg-strong);
+    border-left: 1px solid var(--dock-border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s, padding 0.3s;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.03);
+    transition: width var(--dur-panel) var(--ease-open),
+                opacity var(--dur-panel) var(--ease-open);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--dock-inset-right);
+    position: relative;
+    z-index: 2;
 }
 
 .right-panel.minimized {
@@ -1583,6 +1668,8 @@ textarea::placeholder {
     opacity: 0;
     pointer-events: none;
     border-left-color: transparent;
+    transition: width var(--dur-panel) var(--ease-close),
+                opacity var(--dur-text) var(--ease-close);
 }
 
 @keyframes spin {
@@ -1597,23 +1684,28 @@ i.spinning {
 
 .panel-tabs {
     display: flex;
-    border-bottom: 1px solid var(--border);
-    padding: 0 0.5rem;
+    border-bottom: 1px solid var(--dock-border);
+    padding: 0 4px 0 8px;
     flex-shrink: 0;
+    height: 42px;
+    align-items: center;
+    background: var(--dock-bg);
 }
 
 .ptab {
-    padding: 0.6rem 0.75rem;
-    font-size: 0.78rem;
+    padding: 10px 12px;
+    font-size: 0.76rem;
     font-weight: 500;
     color: var(--muted2);
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: color 0.12s;
+    transition: color var(--dur-micro) var(--ease-open),
+                border-color var(--dur-micro) var(--ease-open);
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
     font-family: inherit;
+    position: relative;
 }
 
 .ptab.active {
@@ -1854,9 +1946,9 @@ i.spinning {
     display: flex;
     align-items: center;
     gap: 0;
-    background: var(--glass-bg);
-    border: 1px solid var(--border);
-    border-radius: 20px;
+    background: var(--dock-bg);
+    border: 1px solid var(--dock-border-hi);
+    border-radius: var(--radius-pill);
     padding: 2px;
     position: relative;
     overflow: hidden;
@@ -2040,74 +2132,116 @@ i.spinning {
 }
 
 /* =====================================================
-   Floating Output Console — FAB
+   Console Dock Handle (pill / tab handle)
    ===================================================== */
 .output-fab {
     position: fixed;
-    bottom: 28px;
-    right: 28px;
-    z-index: 9000;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: 1px solid rgba(168, 85, 247, 0.45);
+    bottom: 104px;
+    right: 24px;
+    z-index: 40;
+    height: 40px;
+    min-width: 40px;
+    padding: 0 10px;
+    border-radius: var(--radius-control);
+    border: 1px solid rgba(168, 85, 247, 0.32);
     background: linear-gradient(145deg, var(--fab-grad-start), var(--fab-grad-end));
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     color: #fff;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0;
+    overflow: hidden;
     box-shadow:
-        0 8px 28px rgba(112, 0, 255, 0.22),
-        0 0 0 1px rgba(168, 85, 247, 0.16) inset;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: fabEntrance 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        0 6px 18px rgba(112, 0, 255, 0.22),
+        0 0 0 1px rgba(168, 85, 247, 0.14) inset;
+    transition: min-width var(--dur-panel) var(--ease-open),
+                gap var(--dur-panel) var(--ease-open),
+                transform var(--dur-micro) var(--ease-open),
+                box-shadow var(--dur-micro) var(--ease-open),
+                border-color var(--dur-micro) var(--ease-open),
+                right var(--dur-panel) var(--ease-open);
+    animation: fabEntrance var(--dur-layout) var(--ease-open);
+}
+
+/* Reposition handle when the right dock is open so it sits at the right edge
+   of the center workspace, just above the composer. */
+.app:has(.right-panel:not(.minimized):not([style*="display:none"])) .output-fab,
+.app:has(.right-panel:not(.minimized):not([style*="display: none"])) .output-fab {
+    right: calc(var(--right-dock-width) + 24px);
 }
 
 .output-fab:hover {
-    transform: scale(1.1);
+    min-width: 128px;
+    gap: 8px;
+    transform: translateY(-1px);
     box-shadow:
-        0 10px 36px rgba(112, 0, 255, 0.28),
-        0 0 0 2px rgba(168, 85, 247, 0.24) inset;
-    border-color: rgba(168, 85, 247, 0.52);
+        0 10px 24px rgba(112, 0, 255, 0.28),
+        0 0 0 1px rgba(168, 85, 247, 0.22) inset;
+    border-color: rgba(168, 85, 247, 0.45);
 }
 
 .output-fab:active {
-    transform: scale(0.95);
+    transform: scale(0.98);
+}
+
+.output-fab .fab-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.output-fab .fab-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: #fff;
+    white-space: nowrap;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width var(--dur-panel) var(--ease-open),
+                opacity var(--dur-text) var(--ease-open) 60ms;
+}
+
+.output-fab:hover .fab-label {
+    max-width: 96px;
+    opacity: 1;
 }
 
 @keyframes fabEntrance {
     from {
         opacity: 0;
-        transform: scale(0.3) translateY(30px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: translateY(0);
     }
 }
 
-/* FAB badge */
+/* Badge (count) */
 .fab-badge {
     position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 20px;
-    height: 20px;
-    border-radius: 10px;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: var(--radius-pill);
     background: linear-gradient(135deg, #f87171, #ef4444);
     color: #fff;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 5px;
-    box-shadow: 0 2px 8px rgba(248, 113, 113, 0.5);
+    box-shadow: 0 2px 6px rgba(248, 113, 113, 0.45);
     border: 2px solid var(--bg);
-    animation: badgePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: badgePop var(--dur-micro) var(--ease-open);
 }
 
 .fab-badge:empty,
@@ -2120,13 +2254,13 @@ i.spinning {
     to { transform: scale(1); }
 }
 
-/* FAB pulse ring */
+/* Subtle activity pulse (only when output is available) */
 .fab-pulse {
     position: absolute;
-    inset: -4px;
-    border-radius: 50%;
-    border: 2px solid rgba(0, 242, 255, 0.34);
-    animation: fabPulseRing 2s infinite;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(0, 242, 255, 0.28);
+    animation: fabPulseRing 2.4s ease-out infinite;
     pointer-events: none;
 }
 
@@ -2135,22 +2269,22 @@ i.spinning {
 }
 
 @keyframes fabPulseRing {
-    0% { transform: scale(1); opacity: 0.7; }
-    70% { transform: scale(1.35); opacity: 0; }
-    100% { transform: scale(1.35); opacity: 0; }
+    0% { opacity: 0.55; transform: scale(1); }
+    70% { opacity: 0; transform: scale(1.12); }
+    100% { opacity: 0; transform: scale(1.12); }
 }
 
 /* =====================================================
-   Output Console — Overlay
+   Output Console — Drawer Overlay
    ===================================================== */
 .output-overlay {
     position: fixed;
     inset: 0;
-    z-index: 9500;
+    z-index: 50;
     display: flex;
     align-items: flex-end;
     justify-content: flex-end;
-    animation: overlayFadeIn 0.2s ease;
+    animation: overlayFadeIn var(--dur-text) var(--ease-open);
     padding: 16px;
     pointer-events: none;
 }
@@ -2161,21 +2295,20 @@ i.spinning {
 }
 
 .output-console {
-    width: min(720px, calc(100vw - 32px));
-    height: min(68vh, 620px);
-    max-width: 720px;
+    width: min(760px, calc(100vw - 32px));
+    height: min(70vh, 640px);
+    max-width: 760px;
     max-height: calc(100vh - 32px);
     background: var(--console-bg);
-    border: 1px solid rgba(168, 85, 247, 0.18);
-    border-radius: 16px;
+    border: 1px solid var(--dock-border-hi);
+    border-radius: var(--radius-control);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     box-shadow:
         var(--panel-shadow-lg),
-        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-        0 0 60px rgba(168, 85, 247, 0.08);
-    animation: consoleSlideUp 0.3s cubic-bezier(0.34, 1.06, 0.64, 1);
+        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    animation: consoleSlideUp var(--dur-panel) var(--ease-open);
     pointer-events: auto;
 }
 
@@ -2190,11 +2323,11 @@ i.spinning {
 @keyframes consoleSlideUp {
     from {
         opacity: 0;
-        transform: translateY(20px) scale(0.97);
+        transform: translateY(12px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
     }
 }
 
@@ -2867,37 +3000,30 @@ i.spinning {
 body {
     background: var(--app-gradient), var(--bg);
 }
-.sidebar,
-.topbar,
-.thought-card,
-.input-box,
-.right-panel,
-.workflow-hud,
-.pipeline-status,
-.pipeline-bar,
-.guidance-banner-inner,
-.output-console,
-.mode-selector,
-.chip,
-.session-dropdown,
-.code-view,
-.console-nav,
-.console-preview,
-.console-terminal,
-.console-footer,
-.output-fab {
+
+/* Light theme uses softer glass to remain readable against bright gradients.
+   Dark theme is intentionally flat (codex-style docked panes). */
+:root[data-theme="light"] .thought-card,
+:root[data-theme="light"] .workflow-hud,
+:root[data-theme="light"] .pipeline-status,
+:root[data-theme="light"] .pipeline-bar,
+:root[data-theme="light"] .guidance-banner-inner,
+:root[data-theme="light"] .output-console,
+:root[data-theme="light"] .session-dropdown,
+:root[data-theme="light"] .console-nav,
+:root[data-theme="light"] .console-preview,
+:root[data-theme="light"] .console-terminal,
+:root[data-theme="light"] .console-footer {
     background: linear-gradient(135deg, var(--glass-highlight), transparent 46%), var(--glass-bg);
     border-color: var(--glass-stroke);
     backdrop-filter: blur(var(--glass-blur)) saturate(155%);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(155%);
 }
-.btn.ghost,
-.icon-btn,
-.pill-select,
-.toggle-track,
-.mode-btn,
-.console-btn,
-.console-footer-btn {
+:root[data-theme="light"] .pill-select,
+:root[data-theme="light"] .toggle-track,
+:root[data-theme="light"] .mode-btn,
+:root[data-theme="light"] .console-btn,
+:root[data-theme="light"] .console-footer-btn {
     background: linear-gradient(135deg, var(--glass-highlight), transparent 48%), var(--control-bg);
     border-color: var(--glass-stroke);
     backdrop-filter: blur(14px) saturate(150%);
@@ -2906,6 +3032,11 @@ body {
 textarea,
 input,
 select {
+    background-color: transparent;
+}
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] input,
+:root[data-theme="light"] select {
     background-color: var(--control-bg);
 }
 :root[data-theme="light"] .user-bubble {
